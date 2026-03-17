@@ -137,7 +137,13 @@
 
     var copyBtn = document.createElement('button');
     copyBtn.textContent = 'Copy';
-    copyBtn.style.cssText = 'position:absolute;top:.5rem;right:.5rem;background:none;border:none;cursor:pointer;opacity:0;font-size:.7rem;color:#94a3b8;padding:3px 6px;border-radius:4px;transition:opacity .2s;';
+    copyBtn.style.cssText = 'position:absolute;top:.5rem;right:.5rem;background:none;border:none;cursor:pointer;font-size:.7rem;color:#94a3b8;padding:3px 6px;border-radius:4px;transition:opacity .2s;';
+    // Always visible on touch devices
+    if ('ontouchstart' in window) {
+      copyBtn.style.opacity = '0.7';
+    } else {
+      copyBtn.style.opacity = '0';
+    }
 
     var tip = document.createElement('div');
     tip.style.cssText = 'display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#1e293b;color:#e2e8f0;font-size:.78rem;line-height:1.5;padding:.75rem 1rem;border-radius:10px;width:300px;z-index:10;box-shadow:0 8px 24px rgba(0,0,0,.25);white-space:pre-wrap;';
@@ -214,7 +220,7 @@
       // Build result grid using DOM
       var grid = document.getElementById('resultGrid');
       grid.innerHTML = '';
-      grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;';
+      grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;';
 
       var binIP = toBinOctets(ipInt).join('.');
       var binMask = toBinOctets(maskInt).join('.');
@@ -285,7 +291,7 @@
       // Binary breakdown
       var binSection = document.getElementById('binarySection');
       binSection.innerHTML = '';
-      binSection.style.cssText = 'background:#0f2035;border:1px solid #2a4a6d;border-radius:12px;padding:1.15rem;';
+      binSection.style.cssText = 'background:#0f2035;border:1px solid #2a4a6d;border-radius:12px;padding:1.15rem;overflow-x:auto;-webkit-overflow-scrolling:touch;';
       var binTitle = document.createElement('div');
       binTitle.style.cssText = 'font-size:.95rem;font-weight:700;color:#93c5fd;margin-bottom:.75rem;';
       binTitle.textContent = 'Binary Breakdown';
@@ -310,6 +316,9 @@
 
       // Splitter section
       renderSplitter();
+
+      // Cisco config generator
+      renderCiscoConfig(netIP, maskIP, firstIP, lastIP, bcastIP, cidr, usable);
 
       resultsDiv.style.display = '';
       resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -451,7 +460,7 @@
     splitInput.max = '256';
     splitInput.value = '4';
     splitInput.id = 'splitCount';
-    splitInput.style.cssText = 'width:80px;padding:.5rem .75rem;border:1.5px solid #2a4a6d;border-radius:8px;font-size:.9rem;outline:none;background:#162d4a;color:#e2e8f0;';
+    splitInput.style.cssText = 'width:80px;padding:.5rem .75rem;border:1.5px solid #2a4a6d;border-radius:8px;font-size:16px;outline:none;background:#162d4a;color:#e2e8f0;';
 
     var lbl2 = document.createElement('span');
     lbl2.style.cssText = 'font-size:.82rem;color:#94a3b8;';
@@ -459,7 +468,7 @@
 
     var splitBtn = document.createElement('button');
     splitBtn.textContent = 'Split';
-    splitBtn.style.cssText = 'padding:.5rem 1rem;background:linear-gradient(135deg,#2563eb,#1e40af);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;';
+    splitBtn.style.cssText = 'padding:.5rem 1rem;background:linear-gradient(135deg,#2563eb,#1e40af);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;min-height:44px;';
 
     row.appendChild(lbl1);
     row.appendChild(splitInput);
@@ -510,6 +519,214 @@
       }
       h += '</tbody></table></div>';
       resultsArea.innerHTML = h;
+    });
+  }
+
+  // Cisco IOS config generator
+  function renderCiscoConfig(netIP, maskIP, firstIP, lastIP, bcastIP, cidr, usable) {
+    var section = document.getElementById('ciscoSection');
+    section.innerHTML = '';
+    section.style.cssText = 'background:#0f2035;border:1px solid #2a4a6d;border-radius:12px;padding:1.15rem;';
+
+    // Title row with toggle and copy button
+    var titleRow = document.createElement('div');
+    titleRow.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.75rem;';
+
+    var titleLeft = document.createElement('div');
+    titleLeft.style.cssText = 'display:flex;align-items:center;gap:.5rem;';
+    var titleText = document.createElement('div');
+    titleText.style.cssText = 'font-size:.95rem;font-weight:700;color:#93c5fd;';
+    titleText.textContent = 'Cisco IOS Switch Config';
+    var examBadge = document.createElement('span');
+    examBadge.style.cssText = 'font-size:.6rem;padding:.15rem .5rem;border-radius:10px;background:#162d4a;border:1px solid #2a4a6d;color:#94a3b8;font-weight:600;';
+    examBadge.textContent = 'Net+ Study Aid';
+    titleLeft.appendChild(titleText);
+    titleLeft.appendChild(examBadge);
+
+    var titleRight = document.createElement('div');
+    titleRight.style.cssText = 'display:flex;align-items:center;gap:.5rem;';
+
+    // Layer toggle
+    var toggleLabel = document.createElement('span');
+    toggleLabel.style.cssText = 'font-size:.72rem;color:#94a3b8;';
+    toggleLabel.textContent = 'Mode:';
+    var toggleBtn = document.createElement('button');
+    toggleBtn.style.cssText = 'padding:.4rem .8rem;background:#162d4a;border:1px solid #2a4a6d;border-radius:6px;color:#93c5fd;font-size:.75rem;font-weight:600;cursor:pointer;min-height:36px;';
+    toggleBtn.textContent = 'Layer 2';
+    var isL3 = false;
+
+    // Copy config button
+    var copyBtn = document.createElement('button');
+    copyBtn.style.cssText = 'padding:.4rem .8rem;background:linear-gradient(135deg,#2563eb,#1e40af);border:none;border-radius:6px;color:#fff;font-size:.75rem;font-weight:600;cursor:pointer;min-height:36px;';
+    copyBtn.textContent = 'Copy Config';
+
+    titleRight.appendChild(toggleLabel);
+    titleRight.appendChild(toggleBtn);
+    titleRight.appendChild(copyBtn);
+    titleRow.appendChild(titleLeft);
+    titleRow.appendChild(titleRight);
+    section.appendChild(titleRow);
+
+    // Terminal-style pre block
+    var terminal = document.createElement('pre');
+    terminal.style.cssText = 'background:#050d1a;border:1px solid #1e3a5f;border-radius:10px;padding:1rem 1.25rem;font-family:"Courier New",Courier,monospace;font-size:.75rem;line-height:1.7;color:#22d3ee;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0;white-space:pre;tab-size:2;';
+    section.appendChild(terminal);
+
+    // Comment line helper
+    var commentStyle = 'color:#6b7280;';
+    var cmdStyle = 'color:#22d3ee;';
+    var keywordStyle = 'color:#60a5fa;';
+    var valueStyle = 'color:#34d399;';
+
+    function buildConfig() {
+      var gwIP = firstIP;
+      var lines = [];
+
+      lines.push('<span style="' + commentStyle + '">! ============================================</span>');
+      lines.push('<span style="' + commentStyle + '">! Cisco IOS Switch Configuration</span>');
+      lines.push('<span style="' + commentStyle + '">! Network: ' + netIP + '/' + cidr + '</span>');
+      lines.push('<span style="' + commentStyle + '">! Generated for Net+ study reference</span>');
+      lines.push('<span style="' + commentStyle + '">! ============================================</span>');
+      lines.push('');
+      lines.push('<span style="' + keywordStyle + '">enable</span>');
+      lines.push('<span style="' + keywordStyle + '">configure terminal</span>');
+      lines.push('');
+
+      // Hostname
+      lines.push('<span style="' + commentStyle + '">! --- Set hostname ---</span>');
+      lines.push('<span style="' + keywordStyle + '">hostname</span> <span style="' + valueStyle + '">Switch1</span>');
+      lines.push('');
+
+      // Disable DNS lookup
+      lines.push('<span style="' + commentStyle + '">! --- Disable DNS lookup (prevents typo delays) ---</span>');
+      lines.push('<span style="' + keywordStyle + '">no ip domain-lookup</span>');
+      lines.push('');
+
+      // Banner
+      lines.push('<span style="' + commentStyle + '">! --- Login banner (security best practice) ---</span>');
+      lines.push('<span style="' + keywordStyle + '">banner motd</span> <span style="' + valueStyle + '"># Authorized Access Only #</span>');
+      lines.push('');
+
+      // Console and VTY passwords
+      lines.push('<span style="' + commentStyle + '">! --- Console line security ---</span>');
+      lines.push('<span style="' + keywordStyle + '">line console 0</span>');
+      lines.push(' <span style="' + keywordStyle + '">password</span> <span style="' + valueStyle + '">cisco</span>');
+      lines.push(' <span style="' + keywordStyle + '">login</span>');
+      lines.push(' <span style="' + keywordStyle + '">logging synchronous</span>');
+      lines.push('');
+      lines.push('<span style="' + commentStyle + '">! --- VTY (remote access) security ---</span>');
+      lines.push('<span style="' + keywordStyle + '">line vty 0 15</span>');
+      lines.push(' <span style="' + keywordStyle + '">password</span> <span style="' + valueStyle + '">cisco</span>');
+      lines.push(' <span style="' + keywordStyle + '">login</span>');
+      lines.push(' <span style="' + keywordStyle + '">transport input ssh</span>');
+      lines.push('');
+
+      // Enable secret
+      lines.push('<span style="' + commentStyle + '">! --- Privileged EXEC password (encrypted) ---</span>');
+      lines.push('<span style="' + keywordStyle + '">enable secret</span> <span style="' + valueStyle + '">class</span>');
+      lines.push('<span style="' + keywordStyle + '">service password-encryption</span>');
+      lines.push('');
+
+      // VLAN 1 management interface
+      lines.push('<span style="' + commentStyle + '">! --- Management VLAN interface ---</span>');
+      lines.push('<span style="' + commentStyle + '">! Assigns IP to VLAN 1 for remote management</span>');
+      lines.push('<span style="' + keywordStyle + '">interface Vlan1</span>');
+      lines.push(' <span style="' + keywordStyle + '">ip address</span> <span style="' + valueStyle + '">' + gwIP + ' ' + maskIP + '</span>');
+      lines.push(' <span style="' + keywordStyle + '">no shutdown</span>');
+      lines.push('');
+
+      // Default gateway
+      lines.push('<span style="' + commentStyle + '">! --- Default gateway (for management traffic) ---</span>');
+      lines.push('<span style="' + keywordStyle + '">ip default-gateway</span> <span style="' + valueStyle + '">' + gwIP + '</span>');
+      lines.push('');
+
+      // Access ports
+      lines.push('<span style="' + commentStyle + '">! --- Access port configuration ---</span>');
+      lines.push('<span style="' + commentStyle + '">! Ports Fa0/1-' + Math.min(usable, 24) + ' assigned to VLAN 1</span>');
+      var portCount = Math.min(usable, 24);
+      lines.push('<span style="' + keywordStyle + '">interface range FastEthernet0/1 - ' + portCount + '</span>');
+      lines.push(' <span style="' + keywordStyle + '">switchport mode access</span>');
+      lines.push(' <span style="' + keywordStyle + '">switchport access vlan 1</span>');
+      lines.push(' <span style="' + keywordStyle + '">spanning-tree portfast</span>');
+      lines.push(' <span style="' + keywordStyle + '">no shutdown</span>');
+      lines.push('');
+
+      // Trunk port
+      lines.push('<span style="' + commentStyle + '">! --- Trunk port (uplink to router/other switch) ---</span>');
+      lines.push('<span style="' + keywordStyle + '">interface GigabitEthernet0/1</span>');
+      lines.push(' <span style="' + keywordStyle + '">switchport mode trunk</span>');
+      lines.push(' <span style="' + keywordStyle + '">switchport trunk allowed vlan all</span>');
+      lines.push(' <span style="' + keywordStyle + '">no shutdown</span>');
+      lines.push('');
+
+      if (isL3) {
+        lines.push('<span style="' + commentStyle + '">! ============================================</span>');
+        lines.push('<span style="' + commentStyle + '">! Layer 3 Inter-VLAN Routing (SVI)</span>');
+        lines.push('<span style="' + commentStyle + '">! ============================================</span>');
+        lines.push('');
+        lines.push('<span style="' + keywordStyle + '">ip routing</span>');
+        lines.push('');
+
+        // If splitter was used, generate VLAN SVIs
+        if (lastCalc && lastCalc.cidr) {
+          var splitBits = 2;
+          var nc = lastCalc.cidr + splitBits;
+          if (nc <= 30) {
+            var subCount = Math.pow(2, splitBits);
+            var sz = Math.pow(2, 32 - nc);
+            for (var v = 0; v < subCount; v++) {
+              var subNet = (lastCalc.networkInt + v * sz) >>> 0;
+              var subFirst = (subNet + 1) >>> 0;
+              var subMaskInt = (0xFFFFFFFF << (32 - nc)) >>> 0;
+              var vlanId = (v + 1) * 10;
+              lines.push('<span style="' + commentStyle + '">! --- VLAN ' + vlanId + ' SVI ---</span>');
+              lines.push('<span style="' + keywordStyle + '">vlan ' + vlanId + '</span>');
+              lines.push(' <span style="' + keywordStyle + '">name</span> <span style="' + valueStyle + '">Subnet_' + (v + 1) + '</span>');
+              lines.push('<span style="' + keywordStyle + '">interface Vlan' + vlanId + '</span>');
+              lines.push(' <span style="' + keywordStyle + '">ip address</span> <span style="' + valueStyle + '">' + intToIP(subFirst) + ' ' + intToIP(subMaskInt) + '</span>');
+              lines.push(' <span style="' + keywordStyle + '">no shutdown</span>');
+              lines.push('');
+            }
+          }
+        }
+      }
+
+      // Save config
+      lines.push('<span style="' + commentStyle + '">! --- Save running config to startup ---</span>');
+      lines.push('<span style="' + keywordStyle + '">end</span>');
+      lines.push('<span style="' + keywordStyle + '">copy running-config startup-config</span>');
+
+      return lines.join('\n');
+    }
+
+    function getPlainText() {
+      var div = document.createElement('div');
+      div.innerHTML = terminal.innerHTML;
+      return div.textContent || div.innerText || '';
+    }
+
+    terminal.innerHTML = buildConfig();
+
+    toggleBtn.addEventListener('click', function() {
+      isL3 = !isL3;
+      toggleBtn.textContent = isL3 ? 'Layer 3' : 'Layer 2';
+      toggleBtn.style.background = isL3 ? '#1e40af' : '#162d4a';
+      toggleBtn.style.color = isL3 ? '#fff' : '#93c5fd';
+      terminal.innerHTML = buildConfig();
+    });
+
+    copyBtn.addEventListener('click', function() {
+      var plain = getPlainText();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(plain).then(function() {
+          copyBtn.textContent = 'Copied!';
+          copyBtn.style.background = 'linear-gradient(135deg,#16a34a,#15803d)';
+          setTimeout(function() {
+            copyBtn.textContent = 'Copy Config';
+            copyBtn.style.background = 'linear-gradient(135deg,#2563eb,#1e40af)';
+          }, 1500);
+        });
+      }
     });
   }
 
