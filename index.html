@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subnet Calculator</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#0a1628 0%,#132744 25%,#1a3a5c 50%,#0f2b4a 75%,#091a30 100%);min-height:100vh;color:#e2e8f0;padding:2rem 1rem}
+.container{max-width:900px;margin:0 auto}
+.header{text-align:center;margin-bottom:2.5rem}
+.header-icon{display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;background:linear-gradient(135deg,#2563eb,#1e40af);border-radius:16px;margin-bottom:1rem;box-shadow:0 4px 14px rgba(37,99,235,.35)}
+.header h1{font-size:1.85rem;background:linear-gradient(135deg,#60a5fa,#93c5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header p{color:#94a3b8;margin-top:.35rem;font-size:.95rem}
+.card{background:linear-gradient(145deg,#1e3a5f,#162d4a);border:1px solid #2a4a6d;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.3);padding:2rem;margin-bottom:1.5rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+.form-group{display:flex;flex-direction:column;gap:.4rem}
+.form-group.full{grid-column:1/-1}
+label{font-size:.82rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:.4rem}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="header-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="3"/><line x1="2" y1="8" x2="22" y2="8"/><line x1="2" y1="14" x2="22" y2="14"/><line x1="8" y1="2" x2="8" y2="22"/><line x1="14" y1="2" x2="14" y2="22"/></svg>
+    </div>
+    <h1>Subnet Calculator</h1>
+    <p>Learning tool - enter any IP to explore subnetting</p>
+  </div>
+
+  <!-- INPUT FORM -->
+  <div class="card">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>IP Address</label>
+        <input type="text" id="ipInput" placeholder="e.g. 192.168.1.0" style="padding:.7rem 1rem;border:1.5px solid #2a4a6d;border-radius:10px;font-size:.95rem;color:#e2e8f0;background:#0f2035;outline:none">
+      </div>
+      <div class="form-group">
+        <label>Network Class <span id="autoDetect" style="font-size:.7rem;color:#2563eb;margin-left:.25rem"></span></label>
+        <select id="classSelect" style="padding:.7rem 1rem;border:1.5px solid #2a4a6d;border-radius:10px;font-size:.95rem;color:#e2e8f0;background:#0f2035;outline:none">
+          <option value="A">Class A (/8)</option>
+          <option value="B">Class B (/16)</option>
+          <option value="C" selected>Class C (/24)</option>
+          <option value="custom">Custom CIDR</option>
+        </select>
+      </div>
+      <div class="form-group" id="cidrGroup" style="display:none">
+        <label>CIDR Prefix</label>
+        <input type="number" id="cidrInput" min="1" max="30" value="24" style="padding:.7rem 1rem;border:1.5px solid #2a4a6d;border-radius:10px;font-size:.95rem;color:#e2e8f0;background:#0f2035;outline:none">
+      </div>
+      <div class="form-group full" style="text-align:center">
+        <button id="calcBtn" style="display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.75rem 2rem;background:linear-gradient(135deg,#2563eb,#1e40af);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer">Calculate</button>
+      </div>
+    </div>
+    <div id="errorMsg" style="color:#dc2626;background:#fef2f2;border:1px solid #fecaca;padding:.75rem 1rem;border-radius:10px;margin-top:.75rem;display:none"></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results" class="card" style="display:none">
+    <div id="resultGrid"></div>
+    <div id="visualBar" style="margin-top:1.5rem"></div>
+    <div id="binarySection" style="margin-top:1.5rem"></div>
+    <div id="topologySection" style="margin-top:1.5rem"></div>
+    <div id="splitterSection" style="margin-top:1.5rem"></div>
+  </div>
+
+  <!-- CHEAT SHEET -->
+  <details id="cheatsheet" style="margin-top:1.5rem">
+    <summary style="font-size:.9rem;font-weight:700;color:#93c5fd;cursor:pointer;padding:.75rem 1rem;background:linear-gradient(145deg,#1e3a5f,#162d4a);border:1px solid #2a4a6d;border-radius:12px;list-style:none;user-select:none">CIDR Quick Reference Cheat Sheet</summary>
+    <div style="background:linear-gradient(145deg,#162d4a,#0f2035);border:1px solid #2a4a6d;border-top:none;border-radius:0 0 12px 12px;padding:1rem;overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:.78rem">
+        <thead>
+          <tr>
+            <th style="background:#0f2035;padding:.45rem .6rem;text-align:left;font-weight:600;color:#93c5fd;font-size:.7rem;text-transform:uppercase;border-bottom:2px solid #2a4a6d">CIDR</th>
+            <th style="background:#0f2035;padding:.45rem .6rem;text-align:left;font-weight:600;color:#93c5fd;font-size:.7rem;text-transform:uppercase;border-bottom:2px solid #2a4a6d">Subnet Mask</th>
+            <th style="background:#0f2035;padding:.45rem .6rem;text-align:left;font-weight:600;color:#93c5fd;font-size:.7rem;text-transform:uppercase;border-bottom:2px solid #2a4a6d">Wildcard</th>
+            <th style="background:#0f2035;padding:.45rem .6rem;text-align:left;font-weight:600;color:#93c5fd;font-size:.7rem;text-transform:uppercase;border-bottom:2px solid #2a4a6d">Total</th>
+            <th style="background:#0f2035;padding:.45rem .6rem;text-align:left;font-weight:600;color:#93c5fd;font-size:.7rem;text-transform:uppercase;border-bottom:2px solid #2a4a6d">Usable</th>
+          </tr>
+        </thead>
+        <tbody id="cheatBody"></tbody>
+      </table>
+    </div>
+  </details>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
