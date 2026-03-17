@@ -17,6 +17,19 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear
 .form-group{display:flex;flex-direction:column;gap:.4rem}
 .form-group.full{grid-column:1/-1}
 label{font-size:.82rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:.4rem}
+
+/* Mobile responsive */
+@media(max-width:600px){
+  body{padding:1rem .5rem}
+  .header{margin-bottom:1.5rem}
+  .header-icon{width:48px;height:48px;border-radius:12px}
+  .header-icon svg{width:24px;height:24px}
+  .header h1{font-size:1.4rem}
+  .header p{font-size:.82rem}
+  .card{padding:1.25rem .9rem;border-radius:12px}
+  .form-grid{grid-template-columns:1fr;gap:1rem}
+  .form-group.full{grid-column:1}
+}
 </style>
 </head>
 <body>
@@ -35,11 +48,11 @@ label{font-size:.82rem;font-weight:600;color:#94a3b8;text-transform:uppercase;le
     <div class="form-grid">
       <div class="form-group">
         <label>IP Address</label>
-        <input type="text" id="ipInput" placeholder="e.g. 192.168.1.0" style="padding:.7rem 1rem;border:1.5px solid #2a4a6d;border-radius:10px;font-size:.95rem;color:#e2e8f0;background:#0f2035;outline:none">
+        <input type="text" id="ipInput" placeholder="e.g. 192.168.1.0" style="padding:.7rem 1rem;border:1.5px solid #2a4a6d;border-radius:10px;font-size:16px;color:#e2e8f0;background:#0f2035;outline:none">
       </div>
       <div class="form-group">
         <label>Network Class <span id="autoDetect" style="font-size:.7rem;color:#2563eb;margin-left:.25rem"></span></label>
-        <select id="classSelect" style="padding:.7rem 1rem;border:1.5px solid #2a4a6d;border-radius:10px;font-size:.95rem;color:#e2e8f0;background:#0f2035;outline:none">
+        <select id="classSelect" style="padding:.7rem 1rem;border:1.5px solid #2a4a6d;border-radius:10px;font-size:16px;color:#e2e8f0;background:#0f2035;outline:none">
           <option value="A">Class A (/8)</option>
           <option value="B">Class B (/16)</option>
           <option value="C" selected>Class C (/24)</option>
@@ -48,10 +61,10 @@ label{font-size:.82rem;font-weight:600;color:#94a3b8;text-transform:uppercase;le
       </div>
       <div class="form-group" id="cidrGroup" style="display:none">
         <label>CIDR Prefix</label>
-        <input type="number" id="cidrInput" min="1" max="30" value="24" style="padding:.7rem 1rem;border:1.5px solid #2a4a6d;border-radius:10px;font-size:.95rem;color:#e2e8f0;background:#0f2035;outline:none">
+        <input type="number" id="cidrInput" min="1" max="30" value="24" style="padding:.7rem 1rem;border:1.5px solid #2a4a6d;border-radius:10px;font-size:16px;color:#e2e8f0;background:#0f2035;outline:none">
       </div>
       <div class="form-group full" style="text-align:center">
-        <button id="calcBtn" style="display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.75rem 2rem;background:linear-gradient(135deg,#2563eb,#1e40af);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer">Calculate</button>
+        <button id="calcBtn" style="display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.85rem 2rem;background:linear-gradient(135deg,#2563eb,#1e40af);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;width:100%;max-width:300px;min-height:48px">Calculate</button>
       </div>
     </div>
     <div id="errorMsg" style="color:#dc2626;background:#fef2f2;border:1px solid #fecaca;padding:.75rem 1rem;border-radius:10px;margin-top:.75rem;display:none"></div>
@@ -64,6 +77,7 @@ label{font-size:.82rem;font-weight:600;color:#94a3b8;text-transform:uppercase;le
     <div id="binarySection" style="margin-top:1.5rem"></div>
     <div id="topologySection" style="margin-top:1.5rem"></div>
     <div id="splitterSection" style="margin-top:1.5rem"></div>
+    <div id="ciscoSection" style="margin-top:1.5rem"></div>
   </div>
 
   <!-- CHEAT SHEET -->
